@@ -26,15 +26,25 @@ describe "Static pages" do
 			before do
 				FactoryGirl.create(:micropost, user: user, content: "Lorem ipsum")
 				FactoryGirl.create(:micropost, user: user, content: "Dolor sit amet")
+				31.times { FactoryGirl.create(:micropost, user: user, content: SecureRandom.hex) }
 				sign_in user
 				visit root_path
 			end
 
 			it "should render the user's feed" do
-				user.feed.each do |item|
+				user.feed.paginate(page: 1) do |item|
 					expect(page).to have_selector("li##{item.id}", text: item.content)
 				end
 			end
+
+			it "should display micropost count" do
+				# expect(page).to have_selector("span", text: Micropost.count )
+				expect(page).to have_selector("section span", text: "micropost".pluralize(Micropost.count.to_s))
+				expect(page).to have_selector("section span", text: Micropost.count)
+			end
+
+			it { should have_selector('div.pagination') }
+			
 		end
 	end
 
